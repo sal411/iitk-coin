@@ -1,37 +1,41 @@
+/*
+@author Vatsal Chaudhary
+@date 31/5/21
+
+ properties of user are defined in user.go
+-Add
+	this takes a object UserData and adds it to the database file
+
+main.go
+	established a connection with database
+	passed an instance, with will give access to methods of user.go
+*/
+
 package main
 
 import (
 	"database/sql"
-	"fmt"
-	"strconv"
+	"iitk-coins/iitk-coins/user"
+	"log"
 
-    _ "github.com/mattn/go-sqlite3"
+	_ "github.com/mattn/go-sqlite3"
 )
 
-/*
-CREATE TABLE IF NOT EXIST "users" (
-	"roll no"	INTEGER NOT NULL UNIQUE,
-	"coins"	INTEGER,
-	PRIMARY KEY("roll no")
-);
-*/
-
 func main() {
-	db, _ := sql.Open("sqlite3", "./users.db")
 
-	// statement, _ := db.Prepare(`
-	// 	INSERT INTO users (roll no, coins) VALUES(? , ?)
-	// `)
+	db, err := sql.Open("sqlite3", "./users.db")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// statement.Exec("190951", 14)
+	item := user.NewUser(db)
 
-	statement, _ := db.Prepare(
-		"CREATE TABLE IF NOT EXIST users (
-			roll no	INTEGER PRIMARY KEY NOT NULL UNIQUE,
-			coins INTEGER)"
-	)
+	newUserData := user.UserData{
+		Rollno: 190951,
+		Name:   "Vatsal Chaudhary",
+	}
 
-	statement.Exec()
+	item.Add(newUserData)
 
-	fmt.Println("hello")
+	db.Close()
 }
