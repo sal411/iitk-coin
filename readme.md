@@ -1,33 +1,51 @@
-Controllers and Models packages are for structuring the prorgam,
-which could not be done
+# IITK COINS
 
-Errors : File hee nhi import ho rhi thi bc, kya randi cheez hai go, 
-local package import krne mein itna chod bc, dimaag ka dahi ho gya,
-jitna code likhne mein time laga usse 4 guna sirf ye figure out krne mein ki ye import kyu nhi ho tha
-Sorry for that rant, Lets move on 
+## Structure
+### Controllers
+- checkAPI
+    * Sends a message that API is LIVE 
+    * GET method
+- createuser
+    * Creates a User in database, with provied name, roll number and password
+    * POST method
+- login
+    * Logs in the user, checks is user exists in database
+    * creates a JWT Token, and sets it in cookie
+    * POST method
+- secretpage
+    * checks if users is logged in, then gives access to data
+    * GET Method
+- user
+    * Has functions pertaining to user, create database, add user to database
+    
 
-I will look into this later, so for now, I have written the whole program in single file
+### models
+- token
+- userdata
 
-But the flow is as follows 
+### routes
+- routes
+    - handles all the http requests, and routes them to appropriate functions
 
-user
-    user.go      -------- this has fuctions for user struct, connectDB, add user, newuser
-    userdata.go  -------- has user struct
-main
+### utils
+- db
+    - gets a connection to database
+- generateToken
+    - generates a JWT token for a given user
+- getFromDataBase
+    - has all functions to fetch data from database
+- printError
+- verifyToken
+    - verifies the JWT Token
 
-main has several hadlerFunc
-/signup
-/login
-/secretpage
-/
+### main.go
 
-/signup 
-    it runs createUser which uses userData struct to create user in DB
+## To Run this app, perform the following step in order
 
-/login 
-    this first finds the hashedpassword saved in db for the corresponding rollno, and return error accordingly,
-            then creates a JWT token and sets it in cookie, valid for 10 minutes 
+1. Clone this repo to your machine
+2. cd into the project folder
+3. enter `go run main.go`  to start server
 
-/secretpage 
-    this first takes the token  from cookie and verfies it, and if matched, presents the information, else rejects it 
 
+
+ 

@@ -1,32 +1,47 @@
 package controllers
 
 import (
-	"gorm.io/gorm"
+	"database/sql"
+	"log"
+
+	_ "github.com/mattn/go-sqlite3"
+	"github.com/sal411/iitk-coin/models"
+	"github.com/sal411/iitk-coin/utils"
 )
 
-type UserData struct {
-	gorm.Model
-
-	Name     string `json:"name"`
-	Rollno   string `json:"rollno"`
-	Password string `json:"password"`
+type User struct {
+	DB *sql.DB
 }
 
-type Users struct {
-	DB *gorm.DB
-}
+func NewUser(db *sql.DB) *User {
 
-func NewUser(db *gorm.DB) *Users {
+	stmt, err := db.Prepare(`
+			CREATE TABLE IF NOT EXISTS 
+				data (rollno TEXT NOT NULL PRIMARY KEY UNIQUE, 
+				name TEXT,
+				password TEXT ) 
+	`)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	db.AutoMigrate(&UserData{})
+	stmt.Exec()
 
-	return &Users{
+	return &User{
 		DB: db,
 	}
 }
 
-func (user *Users) Add(userdata UserData) {
-
-	user.DB.Create(&UserData{Name: userdata.Name, Rollno: userdata.Rollno})
+func (user *User) Add(userdata models.UserData) error {
+	stmt, err := user.DB.Prepare(`
+			INSERT INTO data 
+				(rollno, name, password) VALUES(?, ?, ?)
+	`)
+	utils.PrintError(err)
+	stmt.Exec(userdata.Rollno, userdata.Name, userdata.Password)
+	if err != nil {
+		return err
+	}
+	return nil
 
 }
