@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/sal411/iitk-coin/database"
 	"github.com/sal411/iitk-coin/models"
 	"github.com/sal411/iitk-coin/utils"
 	"golang.org/x/crypto/bcrypt"
@@ -23,7 +24,7 @@ func setCookie(w http.ResponseWriter, token string, time time.Time) {
 
 func FindUser(userRollno string, userPassword string, w http.ResponseWriter) map[string]interface{} {
 
-	hashedPassword := utils.GetHashedPassword(userRollno)
+	hashedPassword := database.GetHashedPassword(userRollno)
 
 	if hashedPassword == "" {
 		var resp = map[string]interface{}{

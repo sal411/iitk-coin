@@ -17,11 +17,27 @@
     * GET Method
 - user
     * Has functions pertaining to user, create database, add user to database
+- bank
+    * Has function to handle getCoin, transferCoins, addCoins requests
     
 
 ### models
 - token
 - userdata
+- bankdata
+- transferCoin
+
+### database
+- bankDataBase
+    * creates a bank data base, and opens account for a user
+- userDataBase
+    * creates a user data base, and adds user
+- getFromBankDB
+    * has functions for reading data from bank database
+- getFromUserDB
+    * has functions for reading data from user database
+- postToBankDV
+    * has functions for wriring data from user database
 
 ### routes
 - routes

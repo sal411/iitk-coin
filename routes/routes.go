@@ -22,6 +22,10 @@ func Handlers() *mux.Router {
 	r.HandleFunc("/signup", controllers.CreateUser).Methods("POST")
 	r.HandleFunc("/login", controllers.Login).Methods("POST")
 	r.HandleFunc("/secretpage", controllers.SecretPage).Methods("GET")
+	r.HandleFunc("/getcoin", controllers.Coins).Methods("GET")
+	r.HandleFunc("/transfercoins", controllers.TransferCoins).Methods("POST")
+	r.HandleFunc("/addcoin", controllers.UpdateCoins).Methods("POST")
+	r.HandleFunc("/getcoin", controllers.Coins).Methods("GET")
 
 	return r
 

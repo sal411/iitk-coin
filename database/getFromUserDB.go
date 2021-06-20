@@ -1,15 +1,17 @@
-package utils
+package database
 
 import (
-	_ "database/sql"
+	"database/sql"
+
 	"strconv"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/sal411/iitk-coin/utils"
 )
 
 func GetHashedPassword(rollno string) string {
 
-	var db = ConnectDB()
+	var db = utils.ConnectDB()
 
 	integerRollNo, _ := strconv.Atoi(rollno)
 
@@ -22,4 +24,17 @@ func GetHashedPassword(rollno string) string {
 	//fmt.Println(hashedPassword)
 	return (hashedPassword)
 
+}
+
+func GetUserFromRollNo(rollno string) (*sql.Row, error) {
+
+	sqlStatement := `SELECT name FROM user WHERE rollno= $1;`
+	db := utils.ConnectDB()
+	row := db.QueryRow(sqlStatement, rollno)
+	err := row.Scan(&rollno)
+	//fmt.Println(hashed_password)
+	if err != nil {
+		return nil, err
+	}
+	return row, nil
 }

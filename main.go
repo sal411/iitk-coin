@@ -18,9 +18,6 @@ func main() {
 
 	port := os.Getenv("PORT")
 
-	// routes.PrintABC()
-	// fmt.Println("open to port " + port)
-
 	http.Handle("/", routes.Handlers())
 
 	log.Printf("Server is up on port '%s'", port)

@@ -6,10 +6,10 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/sal411/iitk-coin/database"
 	"github.com/sal411/iitk-coin/models"
 	"github.com/sal411/iitk-coin/utils"
 
-	_ "github.com/mattn/go-sqlite3"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -39,7 +39,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		hashed_password, err := bcrypt.GenerateFromPassword([]byte(newuser.Password), bcrypt.DefaultCost)
 		utils.PrintError(err)
 
-		item := NewUser(db)
+		item := database.NewUser(db)
 
 		newUserData := models.UserData{
 			Rollno:   newuser.Rollno,
@@ -47,8 +47,16 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 			Password: string(hashed_password),
 		}
 
+		item2 := database.NewBank(db)
+
+		newBankData := models.BankData{
+			Rollno: newuser.Rollno,
+			Coin:   "0",
+		}
+
 		err_in_write := item.Add(newUserData)
-		if err_in_write != nil {
+		err1 := item2.OpenAccount(newBankData)
+		if err_in_write != nil && err1 != nil {
 			log.Printf("Body read error, %v", err_in_write)
 			w.WriteHeader(500) // Return 500 Internal Server Error.
 
@@ -65,7 +73,6 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 			"message": "Congratulations! Your account has been successfully created",
 		}
 		json.NewEncoder(w).Encode(resp)
-		db.Close()
 
 	} else {
 		w.WriteHeader(http.StatusBadRequest)

@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	jwt "github.com/dgrijalva/jwt-go"
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/sal411/iitk-coin/utils"
 )
 
