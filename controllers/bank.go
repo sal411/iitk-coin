@@ -24,7 +24,7 @@ func Coins(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "GET" {
 		var userCoin models.BankData
-		err := json.NewDecoder(r.Body).Decode(&userCoin.Coin)
+		err := json.NewDecoder(r.Body).Decode(&userCoin)
 		if err != nil {
 			var resp = map[string]interface{}{
 				"status":  false,
@@ -35,10 +35,9 @@ func Coins(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(resp)
 			return
 		}
-		var tempCoin int
-		tempCoin, err = database.GetCoinsFromRollno(userCoin.Rollno)
 
-		userCoin.Coin = strconv.Itoa(tempCoin)
+		userCoin.Coin, err = database.GetCoinsFromRollno(userCoin.Rollno)
+		fmt.Println(userCoin.Coin)
 		if err == nil {
 			var resp = map[string]interface{}{
 				"status":  true,
@@ -124,6 +123,7 @@ func UpdateCoins(w http.ResponseWriter, r *http.Request) {
 			var resp = map[string]interface{}{
 				"status":  false,
 				"message": "User Not Found",
+				"error":   err,
 			}
 			json.NewEncoder(w).Encode(resp)
 			return

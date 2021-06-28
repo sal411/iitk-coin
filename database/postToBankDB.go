@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 	"strconv"
 
@@ -12,23 +13,23 @@ import (
 
 // function to update coins in roll no
 func WriteCoins(rollno string, coins string) error {
-	coinsInteger, e := strconv.Atoi(coins)
-	if e != nil {
-		return e
-	}
 
 	_, err := GetUserFromRollNo(rollno)
 
 	if err != nil {
 		return err
 	}
-	var success bool
+
 	total_coins, err := GetCoinsFromRollno(rollno)
-	if success {
+	if err != nil {
 		return err
 	}
 
-	total_coins = total_coins + coinsInteger
+	total_coins_f, _ := strconv.ParseFloat(total_coins, 64)
+	coins_f, _ := strconv.ParseFloat(coins, 64)
+
+	total_coins = fmt.Sprintf("%f", total_coins_f+coins_f)
+
 	db := utils.ConnectDB()
 	statement, _ :=
 		db.Prepare(`UPDATE bank SET coins = $1 WHERE rollno= $2;`)
@@ -46,7 +47,7 @@ func TransferCoin(firstRollno string, secondRollno string, transferAmount int) e
 	if firstRollno == secondRollno {
 		return nil
 	}
-	db, _ := sql.Open("sqlite3", "./database/user.db")
+	db, _ := sql.Open("sqlite3", "./user.db")
 	var options = sql.TxOptions{
 		Isolation: sql.LevelSerializable,
 	}

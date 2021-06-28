@@ -1,32 +1,29 @@
 package database
 
 import (
-	"strconv"
-
 	"github.com/sal411/iitk-coin/utils"
 )
 
-func GetCoinsFromRollno(rollno string) (int, error) {
+func GetCoinsFromRollno(rollno string) (string, error) {
 	db := utils.ConnectDB()
 	var err error
 
 	if AccountExists(rollno) {
-		integerRollNo, _ := strconv.Atoi(rollno)
 
 		sqlStatement := `SELECT coin FROM bank WHERE rollno= $1;`
-		row := db.QueryRow(sqlStatement, integerRollNo)
+		row := db.QueryRow(sqlStatement, rollno)
 
-		var coin int
+		var coin string
 		row.Scan(&coin)
 		err = row.Scan(&coin)
 
 		if err != nil {
-			return 0, err
+			return "", err
 		}
 
 		return coin, nil
 	}
-	return 0, err
+	return "", err
 
 }
 
@@ -35,7 +32,7 @@ func AccountExists(rollno string) bool {
 
 	rows, _ := db.Query("SELECT coin FROM bank WHERE rollno = $1", rollno)
 
-	var coins int
+	var coins string
 	err := rows.Scan(&coins)
 
 	return err == nil

@@ -17,7 +17,7 @@ func NewBank(db *sql.DB) *Bank {
 	stmt, err := db.Prepare(`
 			CREATE TABLE IF NOT EXISTS
 			bank ( rollno TEXT NOT NULL PRIMARY KEY UNIQUE,
-				coin INTEGER
+				coin TEXT
 			)
 	`)
 	if err != nil {
@@ -34,7 +34,7 @@ func NewBank(db *sql.DB) *Bank {
 
 func (bank *Bank) OpenAccount(bankdata models.BankData) error {
 	stmt, err := bank.DB.Prepare(`
-			INSERT INTO data 
+			INSERT INTO bank 
 				(rollno, coin) VALUES(?, ?)
 	`)
 	utils.PrintError(err)

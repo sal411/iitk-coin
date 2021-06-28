@@ -1,8 +1,6 @@
 package database
 
 import (
-	"database/sql"
-
 	"strconv"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -26,15 +24,17 @@ func GetHashedPassword(rollno string) string {
 
 }
 
-func GetUserFromRollNo(rollno string) (*sql.Row, error) {
+func GetUserFromRollNo(rollno string) (string, error) {
 
-	sqlStatement := `SELECT name FROM user WHERE rollno= $1;`
+	sqlStatement := `SELECT name FROM data WHERE rollno= $1;`
 	db := utils.ConnectDB()
 	row := db.QueryRow(sqlStatement, rollno)
-	err := row.Scan(&rollno)
+	var name string
+
+	err := row.Scan(&name)
 	//fmt.Println(hashed_password)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	return row, nil
+	return name, nil
 }
