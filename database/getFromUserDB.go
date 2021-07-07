@@ -24,17 +24,17 @@ func GetHashedPassword(rollno string) string {
 
 }
 
-func GetUserFromRollNo(rollno string) (string, error) {
+func GetUserFromRollNo(rollno string) (string, string, error) {
 
-	sqlStatement := `SELECT name FROM data WHERE rollno= $1;`
-	db := utils.ConnectDB()
+	var db = utils.ConnectDB()
+	sqlStatement := `SELECT name,account_type FROM user WHERE rollno= $1;`
 	row := db.QueryRow(sqlStatement, rollno)
-	var name string
-
-	err := row.Scan(&name)
-	//fmt.Println(hashed_password)
+	var userName string
+	var userType string
+	err := row.Scan(&userName, &userType)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
-	return name, nil
+
+	return userName, userType, nil
 }

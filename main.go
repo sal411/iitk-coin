@@ -1,13 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/joho/godotenv"
-	"github.com/sal411/iitk-coin/database"
 	"github.com/sal411/iitk-coin/routes"
 )
 
@@ -25,9 +23,9 @@ func main() {
 	// a, err := database.GetUserFromRollNo("190951")
 	// fmt.Println(a)
 
-	b, err := database.GetCoinsFromRollno("190951")
+	//b, err := database.GetCoinsFromRollno("190951")
 
-	fmt.Println(b)
+	//fmt.Println(b)
 
 	log.Printf("Server is up on port '%s'", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))

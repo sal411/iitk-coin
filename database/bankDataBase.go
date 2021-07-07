@@ -14,11 +14,10 @@ type Bank struct {
 
 func NewBank(db *sql.DB) *Bank {
 
-	stmt, err := db.Prepare(`
-			CREATE TABLE IF NOT EXISTS
-			bank ( rollno TEXT NOT NULL PRIMARY KEY UNIQUE,
-				coin TEXT
-			)
+	stmt, err := db.Prepare(`CREATE TABLE IF NOT EXISTS bank (
+		rollno TEXT           PRIMARY KEY,
+		coins  DECIMAL (7, 2) 
+	);	
 	`)
 	if err != nil {
 		log.Fatal(err)
@@ -35,10 +34,10 @@ func NewBank(db *sql.DB) *Bank {
 func (bank *Bank) OpenAccount(bankdata models.BankData) error {
 	stmt, err := bank.DB.Prepare(`
 			INSERT INTO bank 
-				(rollno, coin) VALUES(?, ?)
+				(rollno, coins) VALUES(?, ?)
 	`)
 	utils.PrintError(err)
-	stmt.Exec(bankdata.Rollno, bankdata.Coin)
+	stmt.Exec(bankdata.Rollno, bankdata.Coins)
 	if err != nil {
 		return err
 	}

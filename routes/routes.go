@@ -25,6 +25,8 @@ func Handlers() *mux.Router {
 	r.HandleFunc("/getcoin", controllers.Coins).Methods("GET")
 	r.HandleFunc("/transfercoins", controllers.TransferCoins).Methods("POST")
 	r.HandleFunc("/addcoin", controllers.UpdateCoins).Methods("POST")
+	r.HandleFunc("/redeem", controllers.RedeemCoins).Methods("POST")
+	r.HandleFunc("/additems", controllers.AddItems).Methods("POST")
 
 	return r
 

@@ -6,48 +6,79 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 	"strconv"
+	"time"
 
+	"github.com/joho/godotenv"
 	"github.com/sal411/iitk-coin/utils"
 )
 
+var MaxCoins float64
+var Options = sql.TxOptions{
+	Isolation: sql.LevelSerializable,
+}
+
 // function to update coins in roll no
-func WriteCoins(rollno string, coins string) error {
-
-	_, err := GetUserFromRollNo(rollno)
-
-	if err != nil {
-		return err
-	}
-
-	total_coins, err := GetCoinsFromRollno(rollno)
-	if err != nil {
-		return err
-	}
-
-	total_coins_f, _ := strconv.ParseFloat(total_coins, 64)
-	coins_f, _ := strconv.ParseFloat(coins, 64)
-
-	total_coins = fmt.Sprintf("%f", total_coins_f+coins_f)
+func WriteCoins(rollno string, numberOfCoins string, remarks string) (string, error) {
 
 	db := utils.ConnectDB()
-	statement, _ :=
-		db.Prepare(`UPDATE bank SET coins = $1 WHERE rollno= $2;`)
-	_, err = statement.Exec(total_coins, rollno)
+	godotenv.Load()
+	MaxCoins, _ = strconv.ParseFloat(os.Getenv("MAXCOINS"), 32)
+
+	coins_number, e := strconv.ParseFloat(numberOfCoins, 32)
+	if e != nil {
+		return "Coins not valid ", e
+	}
+	_, _, err := GetUserFromRollNo(rollno)
 	if err != nil {
-		return err
+		return "User not present ", err
 	}
 
-	return nil
+	tx, _ := db.BeginTx(context.Background(), &Options)
+
+	res, execErr := tx.Exec(`UPDATE bank SET coins = coins + ? WHERE rollno= ? AND coins + ?<= ?;`, coins_number, rollno, coins_number, MaxCoins)
+	rowsAffected, _ := res.RowsAffected()
+	if execErr != nil || rowsAffected != 1 {
+		_ = tx.Rollback()
+		if execErr != nil {
+			return "", execErr
+		}
+		overflowError := errors.New("Balance cannot exceed " + fmt.Sprintf("%f", MaxCoins))
+		return "", overflowError
+	}
+	_, err = tx.Exec(`INSERT INTO rewards (user,amount,remarks,time) VALUES (?,?,?,?)`, rollno, coins_number, remarks, time.Now())
+	if err != nil {
+		tx.Rollback()
+		log.Fatal(err)
+		return "Some error occured in the transaction, please try again later ", err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return "", err
+	}
+
+	return "Coins added sucessfully ", nil
 
 }
 
 // function to transfer coins between two roll numbers
-func TransferCoin(firstRollno string, secondRollno string, transferAmount int) error {
+func TransferCoin(firstRollno string, secondRollno string, transferAmount float64) (float64, error) {
+
+	db := utils.ConnectDB()
+
 	if firstRollno == secondRollno {
-		return nil
+		return 0, nil
 	}
-	db, _ := sql.Open("sqlite3", "./user.db")
+	_, _, err := GetUserFromRollNo(firstRollno)
+	if err != nil {
+		return 0, errors.New("user " + firstRollno + " not present ")
+	}
+	_, _, err = GetUserFromRollNo(secondRollno)
+	if err != nil {
+		return 0, errors.New("user " + secondRollno + " not present ")
+	}
+
 	var options = sql.TxOptions{
 		Isolation: sql.LevelSerializable,
 	}
@@ -55,33 +86,49 @@ func TransferCoin(firstRollno string, secondRollno string, transferAmount int) e
 	if err != nil {
 		_ = tx.Rollback()
 		log.Fatal(err)
-		return err
+		return 0, err
 	}
 
-	res, execErr := tx.Exec("UPDATE bank SET coins = coins - ? WHERE rollno=? AND coins - ? >= 0", transferAmount, firstRollno, transferAmount)
-
+	batch1 := firstRollno[0:2]
+	batch2 := secondRollno[0:2]
+	var taxRate float32 = 0.02
+	if batch1 != batch2 {
+		taxRate = 0.33
+	}
+	taxAmount := taxRate * float32(transferAmount)
+	res, execErr := tx.Exec("UPDATE bank SET coins = coins - (?+?) WHERE rollno=? AND  coins - (?+?) >= 0 ", transferAmount, taxAmount, firstRollno, transferAmount, taxAmount)
 	rowsAffected, _ := res.RowsAffected()
 	if execErr != nil || rowsAffected != 1 {
 		_ = tx.Rollback()
 		if execErr != nil {
-			return err
+			return 0, err
 		}
 
-		balanceError := errors.New("not enough balance ")
-		return balanceError
+		balanceError := errors.New("not enough balance  ")
+		return 0, balanceError
 
 	}
 
-	res, execErr = tx.Exec("UPDATE bank SET coins = coins + ? WHERE rollno=? ", transferAmount, secondRollno)
+	res, execErr = tx.Exec("UPDATE bank SET coins = coins + ? WHERE rollno=? AND coins + ? <= ?", transferAmount, secondRollno, transferAmount, MaxCoins)
 
 	rowsAffected, _ = res.RowsAffected()
 	if execErr != nil || rowsAffected != 1 {
 		_ = tx.Rollback()
-		return err
-	}
-	if err = tx.Commit(); err != nil {
-		return err
+		if execErr != nil {
+			return 0, execErr
+		}
+		overflowError := errors.New("Balance cannot exceed " + fmt.Sprintf("%f", MaxCoins))
+		return 0, overflowError
 	}
 
-	return nil
+	_, execErr = tx.Exec(`INSERT INTO transfers (TransferFrom,TransferTo,amount,tax,time) VALUES (?,?,?,?,?)`, firstRollno, secondRollno, transferAmount, taxAmount, time.Now())
+	if execErr != nil {
+		_ = tx.Rollback()
+		return 0, execErr
+	}
+	if err = tx.Commit(); err != nil {
+		return 0, err
+	}
+
+	return float64(taxAmount), nil
 }

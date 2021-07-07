@@ -42,16 +42,27 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		item := database.NewUser(db)
 
 		newUserData := models.UserData{
-			Rollno:   newuser.Rollno,
-			Name:     newuser.Name,
-			Password: string(hashed_password),
+			Rollno:       newuser.Rollno,
+			Name:         newuser.Name,
+			Password:     string(hashed_password),
+			Account_type: newuser.Account_type,
+		}
+
+		if newuser.Rollno == "" || newuser.Password == "" || newuser.Account_type == "" {
+			var resp = map[string]interface{}{
+				"status":  false,
+				"message": "one of the field is empty",
+			}
+			json.NewEncoder(w).Encode(resp)
+			return
+
 		}
 
 		item2 := database.NewBank(db)
 
 		newBankData := models.BankData{
 			Rollno: newuser.Rollno,
-			Coin:   "0",
+			Coins:  "0.00",
 		}
 
 		err_in_write := item.Add(newUserData)

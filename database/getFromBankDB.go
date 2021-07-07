@@ -4,26 +4,23 @@ import (
 	"github.com/sal411/iitk-coin/utils"
 )
 
-func GetCoinsFromRollno(rollno string) (string, error) {
+func GetCoinsFromRollno(rollno string) (float64, error) {
 	db := utils.ConnectDB()
-	var err error
 
-	if AccountExists(rollno) {
+	statement, _ :=
+		db.Prepare("CREATE TABLE IF NOT EXISTS bank (rollno TEXT PRIMARY KEY ,coins INT)")
+	statement.Exec()
 
-		sqlStatement := `SELECT coin FROM bank WHERE rollno= $1;`
-		row := db.QueryRow(sqlStatement, rollno)
+	sqlStatement := `SELECT coins FROM bank WHERE rollno= $1;`
+	row := db.QueryRow(sqlStatement, rollno)
 
-		var coin string
-		row.Scan(&coin)
-		err = row.Scan(&coin)
+	var coins float64
+	err := row.Scan(&coins)
 
-		if err != nil {
-			return "", err
-		}
-
-		return coin, nil
+	if err != nil {
+		return 0, err
 	}
-	return "", err
+	return coins, nil
 
 }
 
