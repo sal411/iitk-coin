@@ -1,7 +1,5 @@
 # IITK COINS
 
-## WILL UPDATE readme.md After final Task 
-
 ## Structure
 ### Controllers
 - checkAPI
